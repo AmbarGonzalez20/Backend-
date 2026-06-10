@@ -15,39 +15,44 @@ fun Application.configureRouting() {
             call.respondText("Conexion exitosa con Railway")
         }
 
-        // GET todos los baches
         get("/api/baches") {
             val lista = transaction {
-                BachesTable.selectAll().map {
+                BachesTable.selectAll().toList().map { row ->
                     Bache(
-                        id = it[BachesTable.id],
-                        descripcion = it[BachesTable.descripcion],
-                        latitud = it[BachesTable.latitud],
-                        longitud = it[BachesTable.longitud],
-                        fotoUrl = it[BachesTable.fotoUrl],
-                        fechaReporte = it[BachesTable.fechaReporte]
+                        id = row[BachesTable.id].value,
+                        descripcion = row[BachesTable.descripcion],
+                        latitud = row[BachesTable.latitud],
+                        longitud = row[BachesTable.longitud],
+                        fotoUrl = row[BachesTable.fotoUrl],
+                        fechaReporte = row[BachesTable.fechaReporte]
                     )
                 }
             }
             call.respond(lista)
         }
 
-        // POST crear bache
         post("/api/baches") {
             val nuevo = call.receive<Bache>()
-            val id = transaction {
-                BachesTable.insertAndGetId {
-                    it[descripcion] = nuevo.descripcion
-                    it[latitud] = nuevo.latitud
-                    it[longitud] = nuevo.longitud
-                    it[fotoUrl] = nuevo.fotoUrl
-                    it[fechaReporte] = nuevo.fechaReporte
+            val bacheCreado = transaction {
+                val newId = BachesTable.insertAndGetId { row ->
+                    row[BachesTable.descripcion] = nuevo.descripcion
+                    row[BachesTable.latitud] = nuevo.latitud
+                    row[BachesTable.longitud] = nuevo.longitud
+                    row[BachesTable.fotoUrl] = nuevo.fotoUrl
+                    row[BachesTable.fechaReporte] = nuevo.fechaReporte
                 }
+                Bache(
+                    id = newId.value,
+                    descripcion = nuevo.descripcion,
+                    latitud = nuevo.latitud,
+                    longitud = nuevo.longitud,
+                    fotoUrl = nuevo.fotoUrl,
+                    fechaReporte = nuevo.fechaReporte
+                )
             }
-            call.respond(HttpStatusCode.Created, nuevo.copy(id = id.value))
+            call.respond(HttpStatusCode.Created, bacheCreado)
         }
 
-        // GET bache por ID
         get("/api/baches/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@get call.respond(
@@ -55,16 +60,16 @@ fun Application.configureRouting() {
                     "ID invalido"
                 )
             val bache = transaction {
-                BachesTable.selectAll()
-                    .where { BachesTable.id eq id }
-                    .map {
+                BachesTable.selectAll().toList()
+                    .filter { row -> row[BachesTable.id].value == id }
+                    .map { row ->
                         Bache(
-                            id = it[BachesTable.id],
-                            descripcion = it[BachesTable.descripcion],
-                            latitud = it[BachesTable.latitud],
-                            longitud = it[BachesTable.longitud],
-                            fotoUrl = it[BachesTable.fotoUrl],
-                            fechaReporte = it[BachesTable.fechaReporte]
+                            id = row[BachesTable.id].value,
+                            descripcion = row[BachesTable.descripcion],
+                            latitud = row[BachesTable.latitud],
+                            longitud = row[BachesTable.longitud],
+                            fotoUrl = row[BachesTable.fotoUrl],
+                            fechaReporte = row[BachesTable.fechaReporte]
                         )
                     }.firstOrNull()
             }

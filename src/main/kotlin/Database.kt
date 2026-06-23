@@ -13,11 +13,17 @@ object BachesTable : IntIdTable("baches") {
     val fechaReporte = varchar("fecha_reporte", 100).default("")
 }
 
+object UsuariosTable : IntIdTable("usuarios") {
+    val nombre = varchar("nombre", 200)
+    val email = varchar("email", 200).uniqueIndex()
+    val password = varchar("password", 500)
+    val rol = varchar("rol", 50).default("ciudadano")
+}
+
 fun initDatabase() {
     val databaseUrl = System.getenv("DATABASE_URL")
         ?: throw IllegalStateException("DATABASE_URL no encontrada")
 
-    // Parsear la URL de Railway: postgresql://user:password@host:port/dbname
     val uri = URI(databaseUrl)
     val userInfo = uri.userInfo.split(":")
     val user = userInfo[0]
@@ -37,5 +43,6 @@ fun initDatabase() {
 
     transaction {
         SchemaUtils.create(BachesTable)
+        SchemaUtils.create(UsuariosTable)
     }
 }

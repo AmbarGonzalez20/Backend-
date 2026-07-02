@@ -7,6 +7,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 
 fun Application.configureRouting() {
     routing {
@@ -79,6 +81,23 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.NotFound, "No encontrado")
             } else {
                 call.respond(bache)
+            }
+        }
+        // DELETE /api/baches/{id}
+        delete("/api/baches/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+                ?: return@delete call.respond(
+                    HttpStatusCode.BadRequest, "ID invalido"
+                )
+
+            val eliminado = transaction {
+                BachesTable.deleteWhere { BachesTable.id eq id } > 0
+            }
+
+            if (eliminado) {
+                call.respond(HttpStatusCode.OK, "Bache eliminado correctamente")
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Bache no encontrado")
             }
         }
 

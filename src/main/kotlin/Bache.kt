@@ -9,5 +9,11 @@ data class Bache(
     val latitud: Double,
     val longitud: Double,
     val fotoUrl: String = "",
-    val fechaReporte: String = ""
+    val fechaReporte: String = "",
+    val estado: String = "pendiente"
+)
+
+@Serializable
+data class ActualizarEstadoRequest(
+    val estado: String
 )

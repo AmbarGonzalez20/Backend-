@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.update
 
 fun Application.configureRouting() {
     routing {
@@ -100,8 +101,37 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.NotFound, "Bache no encontrado")
             }
         }
+        // PUT /api/baches/{id}/estado
+        put("/api/baches/{id}/estado") {
+            val id = call.parameters["id"]?.toIntOrNull()
+                ?: return@put call.respond(
+                    HttpStatusCode.BadRequest, "ID invalido"
+                )
 
-        // ── Usuarios ───────────────────────────────────────────
+            val request = call.receive<ActualizarEstadoRequest>()
+
+            val estadosValidos = listOf("pendiente", "en proceso", "resuelto")
+            if (request.estado !in estadosValidos) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Estado invalido. Usa: pendiente, en proceso o resuelto"
+                )
+                return@put
+            }
+
+            val actualizado = transaction {
+                BachesTable.update({ BachesTable.id eq id }) { row ->
+                    row[BachesTable.estado] = request.estado
+                } > 0
+            }
+
+            if (actualizado) {
+                call.respond(HttpStatusCode.OK, "Estado actualizado a: ${request.estado}")
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Bache no encontrado")
+            }
+        }
+        //  Usuarios
 
         // POST /api/registro
         post("/api/registro") {

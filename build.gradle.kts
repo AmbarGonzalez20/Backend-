@@ -21,12 +21,10 @@ dependencies {
     implementation(ktorLibs.server.netty)
     implementation(libs.logback.classic)
 
-    // Serialización y Content Negotiation
     implementation("io.ktor:ktor-server-content-negotiation:3.2.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.2.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
-    // Base de datos
     implementation("org.jetbrains.exposed:exposed-core:0.41.1")
     implementation("org.jetbrains.exposed:exposed-dao:0.41.1")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")

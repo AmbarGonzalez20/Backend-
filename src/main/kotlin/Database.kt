@@ -11,7 +11,7 @@ object BachesTable : IntIdTable("baches") {
     val longitud = double("longitud")
     val fotoUrl = varchar("foto_url", 500).default("")
     val fechaReporte = varchar("fecha_reporte", 100).default("")
-    val estado = varchar("estado", 50).default("pendiente") // 🆕
+    val estado = varchar("estado", 50).default("pendiente")
 }
 
 object UsuariosTable : IntIdTable("usuarios") {

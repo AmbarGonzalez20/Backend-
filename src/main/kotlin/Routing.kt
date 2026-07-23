@@ -10,6 +10,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.update
+import io.ktor.server.response.respondFile
+import io.ktor.http.content.*
+import io.ktor.server.request.receiveMultipart
+import io.ktor.server.response.respondFile
 
 fun Application.configureRouting() {
     routing {
@@ -19,7 +23,7 @@ fun Application.configureRouting() {
             call.respondText("Conexion exitosa con Railway")
         }
 
-        // ── Baches ────────────────────────────────────────────
+        // Baches
 
         get("/api/baches") {
             val lista = transaction {
@@ -131,6 +135,45 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.NotFound, "Bache no encontrado")
             }
         }
+
+        // POST /api/upload - subir imagen
+        post("/api/upload") {
+            val multipart = call.receiveMultipart()
+            var nombreArchivo = ""
+
+            val carpeta = java.io.File("uploads").also { it.mkdirs() }
+
+            multipart.forEachPart { part ->
+                if (part is io.ktor.http.content.PartData.FileItem) {
+                    nombreArchivo = "${System.currentTimeMillis()}.jpg"
+                    val archivo = java.io.File(carpeta, nombreArchivo)
+                    archivo.writeBytes(part.streamProvider().readBytes())
+                }
+                part.dispose()
+            }
+
+            if (nombreArchivo.isEmpty()) {
+                call.respond(HttpStatusCode.BadRequest, "Sin archivo")
+            } else {
+                call.respond(
+                    mapOf("url" to "/uploads/$nombreArchivo")
+                )
+            }
+        }
+
+        // GET /uploads/{archivo} - servir imagenes
+        get("/uploads/{archivo}") {
+            val nombreArchivo = call.parameters["archivo"] ?: return@get call.respond(
+                HttpStatusCode.BadRequest, "Archivo no especificado"
+            )
+            val archivo = java.io.File("uploads/$nombreArchivo")
+            if (archivo.exists()) {
+                call.respondFile(archivo)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Archivo no encontrado")
+            }
+        }
+
         //  Usuarios
 
         // POST /api/registro

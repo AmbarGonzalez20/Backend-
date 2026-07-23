@@ -32,8 +32,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
     implementation("org.postgresql:postgresql:42.7.1")
 
-    implementation("io.ktor:ktor-server-partial-content:3.2.3")
-    implementation("io.ktor:ktor-server-static-content:3.2.3")
+    // Para subir archivos
+    implementation("io.ktor:ktor-server-default-headers:3.2.3")
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)

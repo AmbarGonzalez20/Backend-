@@ -12,6 +12,8 @@ object BachesTable : IntIdTable("baches") {
     val fotoUrl = varchar("foto_url", 500).default("")
     val fechaReporte = varchar("fecha_reporte", 100).default("")
     val estado = varchar("estado", 50).default("pendiente")
+
+    val usuarioId = integer("usuario_id").default(0)
 }
 
 object UsuariosTable : IntIdTable("usuarios") {

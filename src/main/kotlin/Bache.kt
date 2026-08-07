@@ -10,7 +10,8 @@ data class Bache(
     val longitud: Double,
     val fotoUrl: String = "",
     val fechaReporte: String = "",
-    val estado: String = "pendiente"
+    val estado: String = "pendiente",
+    val usuarioId: Int = 0
 )
 
 @Serializable

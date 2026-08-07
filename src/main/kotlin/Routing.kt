@@ -22,9 +22,8 @@ fun Application.configureRouting() {
         get("/") {
             call.respondText("Conexion exitosa con Railway")
         }
-
         // Baches
-
+        // GET /api/baches
         get("/api/baches") {
             val lista = transaction {
                 BachesTable.selectAll().toList().map { row ->
@@ -34,13 +33,16 @@ fun Application.configureRouting() {
                         latitud = row[BachesTable.latitud],
                         longitud = row[BachesTable.longitud],
                         fotoUrl = row[BachesTable.fotoUrl],
-                        fechaReporte = row[BachesTable.fechaReporte]
+                        fechaReporte = row[BachesTable.fechaReporte],
+                        estado = row[BachesTable.estado],
+                        usuarioId = row[BachesTable.usuarioId] // 🆕
                     )
                 }
             }
             call.respond(lista)
         }
 
+// POST /api/baches
         post("/api/baches") {
             val nuevo = call.receive<Bache>()
             val bacheCreado = transaction {
@@ -50,6 +52,8 @@ fun Application.configureRouting() {
                     row[BachesTable.longitud] = nuevo.longitud
                     row[BachesTable.fotoUrl] = nuevo.fotoUrl
                     row[BachesTable.fechaReporte] = nuevo.fechaReporte
+                    row[BachesTable.estado] = nuevo.estado
+                    row[BachesTable.usuarioId] = nuevo.usuarioId // 🆕
                 }
                 Bache(
                     id = newId.value,
@@ -57,12 +61,15 @@ fun Application.configureRouting() {
                     latitud = nuevo.latitud,
                     longitud = nuevo.longitud,
                     fotoUrl = nuevo.fotoUrl,
-                    fechaReporte = nuevo.fechaReporte
+                    fechaReporte = nuevo.fechaReporte,
+                    estado = nuevo.estado,
+                    usuarioId = nuevo.usuarioId // 🆕
                 )
             }
             call.respond(HttpStatusCode.Created, bacheCreado)
         }
 
+// GET /api/baches/{id}
         get("/api/baches/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@get call.respond(
@@ -78,7 +85,9 @@ fun Application.configureRouting() {
                             latitud = row[BachesTable.latitud],
                             longitud = row[BachesTable.longitud],
                             fotoUrl = row[BachesTable.fotoUrl],
-                            fechaReporte = row[BachesTable.fechaReporte]
+                            fechaReporte = row[BachesTable.fechaReporte],
+                            estado = row[BachesTable.estado],
+                            usuarioId = row[BachesTable.usuarioId] // 🆕
                         )
                     }.firstOrNull()
             }
@@ -88,17 +97,16 @@ fun Application.configureRouting() {
                 call.respond(bache)
             }
         }
+
         // DELETE /api/baches/{id}
         delete("/api/baches/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@delete call.respond(
                     HttpStatusCode.BadRequest, "ID invalido"
                 )
-
             val eliminado = transaction {
                 BachesTable.deleteWhere { BachesTable.id eq id } > 0
             }
-
             if (eliminado) {
                 call.respond(HttpStatusCode.OK, "Bache eliminado correctamente")
             } else {
@@ -111,9 +119,7 @@ fun Application.configureRouting() {
                 ?: return@put call.respond(
                     HttpStatusCode.BadRequest, "ID invalido"
                 )
-
             val request = call.receive<ActualizarEstadoRequest>()
-
             val estadosValidos = listOf("pendiente", "en proceso", "resuelto")
             if (request.estado !in estadosValidos) {
                 call.respond(
@@ -122,27 +128,22 @@ fun Application.configureRouting() {
                 )
                 return@put
             }
-
             val actualizado = transaction {
                 BachesTable.update({ BachesTable.id eq id }) { row ->
                     row[BachesTable.estado] = request.estado
                 } > 0
             }
-
             if (actualizado) {
                 call.respond(HttpStatusCode.OK, "Estado actualizado a: ${request.estado}")
             } else {
                 call.respond(HttpStatusCode.NotFound, "Bache no encontrado")
             }
         }
-
         // POST /api/upload - subir imagen
         post("/api/upload") {
             val multipart = call.receiveMultipart()
             var nombreArchivo = ""
-
             val carpeta = java.io.File("uploads").also { it.mkdirs() }
-
             multipart.forEachPart { part ->
                 if (part is io.ktor.http.content.PartData.FileItem) {
                     nombreArchivo = "${System.currentTimeMillis()}.jpg"
@@ -151,7 +152,6 @@ fun Application.configureRouting() {
                 }
                 part.dispose()
             }
-
             if (nombreArchivo.isEmpty()) {
                 call.respond(HttpStatusCode.BadRequest, "Sin archivo")
             } else {
@@ -160,7 +160,6 @@ fun Application.configureRouting() {
                 )
             }
         }
-
         // GET /uploads/{archivo} - servir imagenes
         get("/uploads/{archivo}") {
             val nombreArchivo = call.parameters["archivo"] ?: return@get call.respond(
@@ -173,19 +172,15 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.NotFound, "Archivo no encontrado")
             }
         }
-
         //  Usuarios
-
         // POST /api/registro
         post("/api/registro") {
             val usuario = call.receive<Usuario>()
-
             // Verificar si el email ya existe
             val existe = transaction {
                 UsuariosTable.selectAll().toList()
                     .any { row -> row[UsuariosTable.email] == usuario.email }
             }
-
             if (existe) {
                 call.respond(
                     HttpStatusCode.Conflict,
@@ -193,7 +188,6 @@ fun Application.configureRouting() {
                 )
                 return@post
             }
-
             val usuarioCreado = transaction {
                 val newId = UsuariosTable.insertAndGetId { row ->
                     row[UsuariosTable.nombre] = usuario.nombre
@@ -211,11 +205,9 @@ fun Application.configureRouting() {
             }
             call.respond(HttpStatusCode.Created, usuarioCreado)
         }
-
         // POST /api/login
         post("/api/login") {
             val request = call.receive<LoginRequest>()
-
             val usuario = transaction {
                 UsuariosTable.selectAll().toList()
                     .filter { row ->
@@ -232,7 +224,6 @@ fun Application.configureRouting() {
                         )
                     }.firstOrNull()
             }
-
             if (usuario == null) {
                 call.respond(
                     HttpStatusCode.Unauthorized,
@@ -242,7 +233,6 @@ fun Application.configureRouting() {
                 call.respond(usuario)
             }
         }
-
         // GET /api/usuarios (solo para administrador)
         get("/api/usuarios") {
             val lista = transaction {

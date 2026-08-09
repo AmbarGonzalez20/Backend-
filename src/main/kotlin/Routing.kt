@@ -33,7 +33,6 @@ fun Application.configureRouting() {
                         latitud = row[BachesTable.latitud],
                         longitud = row[BachesTable.longitud],
                         fotoUrl = row[BachesTable.fotoUrl],
-                        fechaReporte = row[BachesTable.fechaReporte],
                         estado = row[BachesTable.estado],
                         usuarioId = row[BachesTable.usuarioId] // 🆕
                     )
@@ -51,7 +50,6 @@ fun Application.configureRouting() {
                     row[BachesTable.latitud] = nuevo.latitud
                     row[BachesTable.longitud] = nuevo.longitud
                     row[BachesTable.fotoUrl] = nuevo.fotoUrl
-                    row[BachesTable.fechaReporte] = nuevo.fechaReporte
                     row[BachesTable.estado] = nuevo.estado
                     row[BachesTable.usuarioId] = nuevo.usuarioId // 🆕
                 }
@@ -61,7 +59,6 @@ fun Application.configureRouting() {
                     latitud = nuevo.latitud,
                     longitud = nuevo.longitud,
                     fotoUrl = nuevo.fotoUrl,
-                    fechaReporte = nuevo.fechaReporte,
                     estado = nuevo.estado,
                     usuarioId = nuevo.usuarioId // 🆕
                 )
@@ -85,7 +82,6 @@ fun Application.configureRouting() {
                             latitud = row[BachesTable.latitud],
                             longitud = row[BachesTable.longitud],
                             fotoUrl = row[BachesTable.fotoUrl],
-                            fechaReporte = row[BachesTable.fechaReporte],
                             estado = row[BachesTable.estado],
                             usuarioId = row[BachesTable.usuarioId] // 🆕
                         )

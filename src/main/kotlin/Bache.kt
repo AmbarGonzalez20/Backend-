@@ -9,7 +9,6 @@ data class Bache(
     val latitud: Double,
     val longitud: Double,
     val fotoUrl: String = "",
-    val fechaReporte: String = "",
     val estado: String = "pendiente",
     val usuarioId: Int = 0
 )

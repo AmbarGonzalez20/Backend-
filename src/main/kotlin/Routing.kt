@@ -120,8 +120,9 @@ fun Application.configureRouting() {
                     HttpStatusCode.BadRequest, "ID invalido"
                 )
             val request = call.receive<ActualizarEstadoRequest>()
+            val estadoNormalizado = request.estado.lowercase().trim()
             val estadosValidos = listOf("pendiente", "en proceso", "resuelto")
-            if (request.estado !in estadosValidos) {
+            if (estadoNormalizado !in estadosValidos) {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Estado invalido. Usa: pendiente, en proceso o resuelto"
@@ -130,11 +131,11 @@ fun Application.configureRouting() {
             }
             val actualizado = transaction {
                 BachesTable.update({ BachesTable.id eq id }) { row ->
-                    row[BachesTable.estado] = request.estado
+                    row[BachesTable.estado] = estadoNormalizado
                 } > 0
             }
             if (actualizado) {
-                call.respond(HttpStatusCode.OK, "Estado actualizado a: ${request.estado}")
+                call.respond(HttpStatusCode.OK, "Estado actualizado a: $estadoNormalizado")
             } else {
                 call.respond(HttpStatusCode.NotFound, "Bache no encontrado")
             }
